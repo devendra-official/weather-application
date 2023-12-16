@@ -13,6 +13,8 @@ final class WeatherSuccess extends WeatherState {
   final String dateTime;
   final String sunrise;
   final String sunset;
+  final String direction;
+  final String speed;
   final List<Temp> forecast;
   final Function weatherImg;
   final Function convertTemp;
@@ -20,6 +22,8 @@ final class WeatherSuccess extends WeatherState {
   final Function convertTime;
  
   WeatherSuccess({
+    required this.direction,
+    required this.speed,
     required this.cityName,
     required this.dateTime,
     required this.forecast,

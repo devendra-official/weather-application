@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:weather/bloc/weather_bloc.dart';
 import 'package:weather/model/weather_model.dart';
 import 'package:weather/presentation/error.dart';
+import 'package:weather/presentation/search.dart';
 import 'package:weather/presentation/widget.dart';
 
 class MyHomePage extends StatelessWidget {
@@ -10,184 +11,218 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double h = MediaQuery.of(context).size.height;
-    double w = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
     return BlocBuilder<WeatherBloc, WeatherState>(
       builder: (context, state) {
-        if (state is WeatherLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator.adaptive(),
-            ),
-          );
-        }
         if (state is WeatherFailure) {
-          return ErrorPage(errormsg: state.error);
+          return Scaffold(
+            appBar: AppBar(
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) {
+                      return const SearchPage();
+                    }), (route) => false);
+                  },
+                  icon: const Icon(Icons.search),
+                ),
+              ],
+            ),
+            body: ErrorPage(errormsg: state.error),
+          );
         }
         if (state is WeatherSuccess) {
           Temp list = state.forecast[0];
           return Scaffold(
             appBar: AppBar(
-                centerTitle: true,
-                title: Text(state.cityName),
-                backgroundColor: Colors.transparent,
-                actions: [
-                  IconButton(
+              centerTitle: true,
+              title: Text(
+                state.cityName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              actions: [
+                IconButton(
                     onPressed: () {
                       Navigator.of(context)
                           .push(MaterialPageRoute(builder: (context) {
                         return const SearchPage();
                       }));
                     },
-                    icon: const Icon(Icons.search),
-                  )
-                ]),
+                    icon: const Icon(
+                      Icons.search,
+                    ))
+              ],
+            ),
             body: SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.all(8),
                 child: Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Image.asset(state.weatherImage,
-                            height: h / 4, width: w / 2),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              state.main,
-                              style: const TextStyle(
-                                  fontSize: 24, fontWeight: FontWeight.normal),
-                            ),
-                            Text('${state.temp}°C',
-                                style: const TextStyle(
-                                    fontSize: 42, fontWeight: FontWeight.bold)),
-                            Text(state.dateTime)
-                          ],
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      height: 148,
-                      child: ListView.builder(
-                          itemCount: state.forecast.length,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
-                              width: 128,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(18),
-                                  color: const Color.fromRGBO(41, 41, 41, 1)),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(state.convertTimeWithWeek(
-                                      state.forecast[index].dttxt)),
-                                  Image.asset(
-                                    state.weatherImg(
-                                        state.forecast[index].weather[0].id),
-                                    height: 78,
-                                    width: 78,
-                                  ),
-                                  Text(
-                                    "${state.convertTemp(state.forecast[index].main.temp)}°C",
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                    ),
-                    const SizedBox(height: 30),
-                    Container(
-                      height: 260,
-                      margin: const EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                          color: const Color.fromRGBO(41, 41, 41, 1),
-                          borderRadius: BorderRadius.circular(18)),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    ContainerBox(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              InfoBox(
-                                  image: "assets/weather images/humidity.png",
-                                  value: list.main.humidity,
-                                  name: "Humidity"),
-                              InfoBox(
-                                  image: "assets/weather images/pressure.png",
-                                  value: list.main.pressure,
-                                  name: "Pressure"),
-                              InfoBox(
-                                image: "assets/weather images/visibility.png",
-                                value: list.visibility,
-                                name: "Visibility",
+                              Text(
+                                state.main,
+                                style: const TextStyle(
+                                    fontSize: 21, fontWeight: FontWeight.bold),
                               ),
+                              const SizedBox(height: 30),
+                              Text("${state.temp}°C",
+                                  style: const TextStyle(
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold)),
+                              Text(state.dateTime)
                             ],
                           ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          Column(
                             children: [
-                              InfoBox(
-                                  image: "assets/weather images/sea level.png",
-                                  value: list.main.seaLevel,
-                                  name: "Sea level"),
-                              InfoBox(
-                                  image:
-                                      "assets/weather images/ground level.png",
-                                  value: list.main.grndLevel,
-                                  name: "Ground level"),
-                              InfoBox(
-                                image: "assets/weather images/wind speed.png",
-                                value: list.wind.speed,
-                                name: "Wind Speed",
+                              Image.asset(
+                                state.weatherImage,
+                                height: height / 6,
+                                width: width / 3,
                               ),
                             ],
-                          ),
+                          )
                         ],
                       ),
                     ),
-                    const SizedBox(height: 30),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 5),
-                      height: 120,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(18),
-                          color: const Color.fromRGBO(41, 41, 41, 1)),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    const SizedBox(height: 10),
+                    ContainerBox(
+                      padding: const EdgeInsets.all(16),
+                      height: 200,
+                      child: Column(
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.timer_sharp),
+                              SizedBox(width: 10),
+                              Text("HOURLY FORECAST",
+                                  style: TextStyle(letterSpacing: 2)),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          Expanded(
+                            child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: state.forecast.length,
+                                itemBuilder: (context, index) {
+                                  return Column(
+                                    children: [
+                                      Text(state.convertTimeWithWeek(
+                                          state.forecast[index].dttxt)),
+                                      Image.asset(
+                                          state.weatherImg(state
+                                              .forecast[index].weather[0].id),
+                                          height: 74,
+                                          width: 88),
+                                      Text(
+                                          "${state.convertTemp(state.forecast[0].main.temp)}°C")
+                                    ],
+                                  );
+                                }),
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 220,
+                      child: GridView(
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(0),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisExtent: 220,
+                          crossAxisSpacing: 10,
+                        ),
                         children: [
                           Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                state.sunrise,
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ContainerBox(
+                                padding: const EdgeInsets.all(16),
+                                height: 109,
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      state.direction,
+                                      style: const TextStyle(fontSize: 19),
+                                    ),
+                                    Text(
+                                      "${state.speed} km/h",
+                                      style: const TextStyle(
+                                        fontSize: 19,
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
-                              const Text("Sunrise"),
+                              const SizedBox(height: 10),
+                              ContainerBox(
+                                padding: const EdgeInsets.all(16),
+                                height: 100,
+                                child: Column(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    Text(
+                                      "${state.sunrise} sunrise",
+                                      style: const TextStyle(fontSize: 19),
+                                    ),
+                                    Text(
+                                      "${state.sunset} sunset",
+                                      style: const TextStyle(fontSize: 19),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
-                          Image.asset(
-                            "assets/weather images/sun.png",
-                            height: 100,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                state.sunset,
-                                style: const TextStyle(
-                                    fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              const Text("Sunset"),
-                            ],
+                          ContainerBox(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                RowWidget(
+                                    title: "Humidity",
+                                    value: "${list.main.humidity}%"),
+                                const Divider(
+                                    thickness: 0.5, color: Colors.white54),
+                                RowWidget(
+                                    title: "Feels like",
+                                    value:
+                                        "${state.convertTemp(list.main.feellike)}°"),
+                                const Divider(
+                                    thickness: 0.5, color: Colors.white54),
+                                RowWidget(
+                                    title: "Visibility",
+                                    value: list.visibility),
+                                const Divider(
+                                    thickness: 0.5, color: Colors.white54),
+                                RowWidget(
+                                    title: "Pressure",
+                                    value: list.main.pressure),
+                                const Divider(
+                                    thickness: 0.5, color: Colors.white54),
+                                RowWidget(
+                                    title: "Ground level",
+                                    value: list.main.grndLevel),
+                                const Divider(
+                                    thickness: 0.5, color: Colors.white54),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -198,7 +233,7 @@ class MyHomePage extends StatelessWidget {
             ),
           );
         }
-        return const ErrorPage();
+        return const LoadingScreen();
       },
     );
   }

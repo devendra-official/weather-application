@@ -29,10 +29,17 @@ final class WeatherGetData extends WeatherEvent {
     String sunrise = convertTime(city.sunrise);
     String sunset = convertTime(city.sunset);
 
+    // Wind Speed
+    double spd = double.parse(weatherModel.list[0].wind.speed) * 1.60934;
+    String speed = spd.toStringAsFixed(0);
+
     // City Name
     String cityName = weatherModel.city.name;
 
-    return (temp, desc, image, time, sunrise, sunset, cityName);
+    // Wind Direction
+    String dir = direction(int.parse(weatherModel.list[0].wind.degree));
+
+    return (temp, desc, image, time, sunrise, sunset, cityName, dir, speed);
   }
 
   String convertTime(int epoch) {
@@ -40,12 +47,12 @@ final class WeatherGetData extends WeatherEvent {
     return DateFormat.Hm().format(dateTime);
   }
 
-  String convertTimeWithWeek(String dtTxt){
+  String convertTimeWithWeek(String dtTxt) {
     DateTime date = DateTime.parse(dtTxt);
     return "${DateFormat.E().format(date)} ${DateFormat.Hm().format(date)}";
   }
 
-  String weatherImg(int weatherId){
+  String weatherImg(int weatherId) {
     if (weatherId >= 200 && weatherId <= 232) {
       return "assets/weather is/thunder.png";
     } else if (weatherId >= 300 && weatherId <= 321) {
@@ -63,8 +70,28 @@ final class WeatherGetData extends WeatherEvent {
     }
   }
 
-  String temperature(String temp){
+  String temperature(String temp) {
     double tp = double.parse(temp) - 273.15;
-    return tp.toStringAsFixed(2);
+    return tp.toStringAsFixed(0);
+  }
+
+  direction(int degree) {
+    if (degree <= 22 || degree >= 338) {
+      return "North";
+    } else if (degree >= 23 && degree <= 67) {
+      return "North East";
+    } else if (degree >= 68 && degree <= 112) {
+      return "East";
+    } else if (degree >= 113 && degree <= 157) {
+      return "South East";
+    } else if (degree >= 158 && degree <= 202) {
+      return "South";
+    } else if (degree >= 203 && degree <= 247) {
+      return "South West";
+    } else if (degree >= 248 && degree <= 292) {
+      return "West";
+    } else if (degree >= 293 && degree <= 337) {
+      return "North West";
+    }
   }
 }

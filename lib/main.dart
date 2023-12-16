@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:weather/bloc/weather_bloc.dart';
+import 'package:weather/cubit/location_cubit.dart';
 import 'package:weather/presentation/error.dart';
 import 'package:weather/presentation/home.dart';
+import 'package:weather/presentation/search.dart';
+import 'package:weather/presentation/widget.dart';
 
 void main() async {
   await dotenv.load(fileName: '.env');
-  runApp(BlocProvider(
-    create: (context) => WeatherBloc(),
-    child: const MyApp(),
-  ));
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(lazy: false, create: (context) => WeatherBloc()),
+        BlocProvider(create: (context) => LocationCubit()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -31,23 +39,42 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(brightness: Brightness.dark, useMaterial3: true),
-      home: BlocBuilder<WeatherBloc, WeatherState>(builder: (context, state) {
-        if (state is WeatherLoading) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator.adaptive(),
-            ),
-          );
-        }
-        if (state is WeatherFailure) {
-          return ErrorPage(errormsg: state.error);
-        }
-        if (state is WeatherSuccess) {
-          return const MyHomePage();
-        }
-        return const ErrorPage();
-      }),
+      theme: ThemeData(
+          colorSchemeSeed: const Color.fromARGB(255, 84, 109, 169),
+          appBarTheme: const AppBarTheme(
+              backgroundColor: Color.fromARGB(255, 66, 87, 135)),
+          scaffoldBackgroundColor: const Color.fromARGB(255, 66, 87, 135),
+          brightness: Brightness.dark,
+          useMaterial3: true),
+      home: BlocBuilder<WeatherBloc, WeatherState>(
+        builder: (context, state) {
+          if (state is WeatherSuccess) {
+            return const MyHomePage();
+          }
+          if (state is WeatherLoading) {
+            return const LoadingScreen();
+          }
+          if (state is WeatherFailure) {
+            return Scaffold(
+              appBar: AppBar(
+                actions: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) {
+                        return const SearchPage();
+                      }), (route) => false);
+                    },
+                    icon: const Icon(Icons.search),
+                  ),
+                ],
+              ),
+              body: ErrorPage(errormsg: state.error),
+            );
+          }
+          return const SearchPage();
+        },
+      ),
     );
   }
 }

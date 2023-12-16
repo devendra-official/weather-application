@@ -58,10 +58,7 @@ class Weather {
   late int id;
   late String main;
 
-  Weather(
-      {
-      required this.id,
-      required this.main});
+  Weather({required this.id, required this.main});
 
   Weather.fromJson(Map<String, dynamic> json) {
     id = json["id"];
@@ -75,29 +72,35 @@ class Main {
   late String seaLevel;
   late String grndLevel;
   late String humidity;
+  late String feellike;
 
   Main(
-      {required this.temp,
+      {
+      required this.feellike,  
+      required this.temp,
       required this.pressure,
       required this.seaLevel,
       required this.grndLevel,
       required this.humidity});
 
   Main.fromJson(Map<String, dynamic> json) {
+    feellike = json["feels_like"].toString();
     temp = json["temp"].toString();
-    pressure =    json['pressure'].toString();
-    seaLevel =   json['sea_level'].toString();
+    pressure = json['pressure'].toString();
+    seaLevel = json['sea_level'].toString();
     grndLevel = json['grnd_level'].toString();
-    humidity =    json['humidity'].toString();
+    humidity = json['humidity'].toString();
   }
 }
 
 class Wind {
   late String speed;
+  late String degree;
 
-  Wind({required this.speed});
+  Wind({required this.speed,required this.degree});
   Wind.fromJson(Map<String, dynamic> json) {
     speed = json["speed"].toString();
+    degree = json["deg"].toString();
   }
 }
 
@@ -119,5 +122,17 @@ class City {
     name = json["name"];
     sunrise = json["sunrise"];
     sunset = json["sunset"];
+  }
+}
+
+class BadRequest{
+  late String cod;
+  late String message;
+
+  BadRequest({required this.cod,required this.message});
+
+  BadRequest.fromJson(Map<String,dynamic> json){
+    cod = json["cod"].toString();
+    message = json["message"].toString();
   }
 }

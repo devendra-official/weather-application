@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -14,33 +15,37 @@ class WeatherBloc extends Bloc<WeatherEvent, WeatherState> {
 
   _getData(WeatherGetData event, Emitter<WeatherState> emit) async {
     emit(WeatherLoading());
-    try {
-      final weatherModel = event.city != null
-          ? await WeatherExtract().getWeather(city: event.city)
-          : await WeatherExtract().getWeather();
-
-      if (weatherModel.cod == "200") {
-        final values = event.weatherConvert(weatherModel);
-
-        return emit(WeatherSuccess(
-            temp: values.$1,
-            main: values.$2,
-            weatherImage: values.$3,
-            dateTime: values.$4,
-            sunrise: values.$5,
-            sunset: values.$6,
-            cityName: values.$7,
-            forecast: weatherModel.list,
-            weatherImg: event.weatherImg,
-            convertTemp: event.temperature,
-            convertTime: event.convertTime,
-            convertTimeWithWeek: event.convertTimeWithWeek
-            ));
-      } else {
-        return emit(WeatherFailure(weatherModel.message));
+    final connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.none) {
+      return emit(WeatherFailure("You are not connected to any network"));
+    } else {
+      try {
+        final weatherModel = event.city != null
+            ? await WeatherExtract().getWeather(city: event.city)
+            : await WeatherExtract().getWeather();
+        if (weatherModel.cod == "200") {
+          final values = event.weatherConvert(weatherModel);
+          return emit(WeatherSuccess(
+              temp: values.$1,
+              main: values.$2,
+              weatherImage: values.$3,
+              dateTime: values.$4,
+              sunrise: values.$5,
+              sunset: values.$6,
+              cityName: values.$7,
+              direction: values.$8,
+              speed: values.$9,
+              forecast: weatherModel.list,
+              weatherImg: event.weatherImg,
+              convertTemp: event.temperature,
+              convertTime: event.convertTime,
+              convertTimeWithWeek: event.convertTimeWithWeek));
+        } else {
+          return emit(WeatherFailure(weatherModel.message));
+        }
+      } catch (e) {
+        return emit(WeatherFailure("something went wrong"));
       }
-    } catch (e) {
-      return emit(WeatherFailure("something went wrong"));
     }
   }
 }

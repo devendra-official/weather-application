@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:weather/model/badrequest_model.dart';
+import 'package:weather/model/location_model.dart';
 import 'package:weather/model/weather_model.dart';
 import 'package:weather/repository/location.dart';
 
 class WeatherExtract {
   final _api = dotenv.env['OPENWEATHER_KEY'];
   final _geoapi = dotenv.env['GEOAPIFY'];
+  final _accuapi = dotenv.env['ACCUWEATHER'];
 
   Future<String> getLocation() async {
     Position position = await determineposition();
@@ -31,5 +32,12 @@ class WeatherExtract {
     } else {
       return BadRequest.fromJson(data);
     }
+  }
+
+  Future searchLocation(String city) async {
+    final res = await http.get(Uri.parse(
+        "https://dataservice.accuweather.com/locations/v1/cities/autocomplete?apikey=$_accuapi&q=$city"));
+    final data = jsonDecode(res.body);
+    return Location.fromJson(data);
   }
 }
